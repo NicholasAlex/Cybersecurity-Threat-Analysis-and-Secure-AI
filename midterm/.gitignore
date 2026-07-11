@@ -1,0 +1,14 @@
+data/
+extracted/
+features/
+images/
+models/
+*.pcap
+*.exe
+*.bin
+*.dll
+__pycache__/
+*.pyc
+venv/
+.env
+*.log
