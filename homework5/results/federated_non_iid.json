@@ -1,0 +1,585 @@
+{
+  "experiment": "federated_non_iid",
+  "partition": "non_iid",
+  "n_samples": 5,
+  "families": [
+    "AgentTesla",
+    "Formbook",
+    "RedLine"
+  ],
+  "num_clients": 3,
+  "window_size": 500,
+  "window_stride": 250,
+  "n_parameters": 41011,
+  "bytes_per_round_total": 984264,
+  "hyperparameters": {
+    "rounds": 40,
+    "local_epochs": 2,
+    "lr": 0.001,
+    "batch_size": 32,
+    "base_seed": 42,
+    "n_seeds": 5
+  },
+  "sample_level_accuracy": 0.12,
+  "sample_level_std": 0.098,
+  "window_level_accuracy": 0.1067,
+  "window_level_std": 0.068,
+  "structural_failures": [
+    "agenttesla_02.exe",
+    "formbook_01.exe",
+    "formbook_02.exe",
+    "redline_01.exe"
+  ],
+  "example_history": {
+    "fold": 0,
+    "train_loss_by_round": [
+      [
+        1,
+        0.9919156651053809
+      ],
+      [
+        2,
+        0.7949499792053987
+      ],
+      [
+        3,
+        0.6639980909175578
+      ],
+      [
+        4,
+        0.6355108099997835
+      ],
+      [
+        5,
+        0.8016124172769775
+      ],
+      [
+        6,
+        1.1025031376123111
+      ],
+      [
+        7,
+        1.4734738962217206
+      ],
+      [
+        8,
+        1.9399350703715847
+      ],
+      [
+        9,
+        2.47969098297299
+      ],
+      [
+        10,
+        2.9335267132292007
+      ],
+      [
+        11,
+        3.419962485989065
+      ],
+      [
+        12,
+        4.125065158473685
+      ],
+      [
+        13,
+        4.651069462946415
+      ],
+      [
+        14,
+        5.156929095629887
+      ],
+      [
+        15,
+        5.576469513936543
+      ],
+      [
+        16,
+        5.4552833808909655
+      ],
+      [
+        17,
+        5.80884630283041
+      ],
+      [
+        18,
+        5.632017444531644
+      ],
+      [
+        19,
+        5.44247175189188
+      ],
+      [
+        20,
+        5.313991707651675
+      ],
+      [
+        21,
+        5.3682322809115455
+      ],
+      [
+        22,
+        5.229397151409366
+      ],
+      [
+        23,
+        5.452911411980661
+      ],
+      [
+        24,
+        5.639910715948072
+      ],
+      [
+        25,
+        5.341632212311639
+      ],
+      [
+        26,
+        5.187434865491411
+      ],
+      [
+        27,
+        4.866357610448289
+      ],
+      [
+        28,
+        5.340117686067743
+      ],
+      [
+        29,
+        5.655220435393813
+      ],
+      [
+        30,
+        5.106315894667766
+      ],
+      [
+        31,
+        4.832347314932089
+      ],
+      [
+        32,
+        5.287318824578848
+      ],
+      [
+        33,
+        5.255046816069968
+      ],
+      [
+        34,
+        5.4628950316283005
+      ],
+      [
+        35,
+        5.032892744988191
+      ],
+      [
+        36,
+        5.0426080726554785
+      ],
+      [
+        37,
+        5.44859279877888
+      ],
+      [
+        38,
+        4.541124623985963
+      ],
+      [
+        39,
+        4.782288145685875
+      ],
+      [
+        40,
+        5.3699953191113785
+      ]
+    ]
+  },
+  "runs": [
+    {
+      "seed": 42,
+      "sample_level_accuracy": 0.2,
+      "window_level_accuracy": 0.16666,
+      "folds": [
+        {
+          "fold": 0,
+          "held_out": "agenttesla_02.exe",
+          "true_family": "AgentTesla",
+          "pred_family": "Formbook",
+          "sample_correct": 0,
+          "window_accuracy": 0.0,
+          "n_test_windows": 61,
+          "client_shard_sizes": [
+            1,
+            2,
+            1
+          ]
+        },
+        {
+          "fold": 1,
+          "held_out": "formbook_01.exe",
+          "true_family": "Formbook",
+          "pred_family": "AgentTesla",
+          "sample_correct": 0,
+          "window_accuracy": 0.0,
+          "n_test_windows": 33,
+          "client_shard_sizes": [
+            1,
+            1,
+            2
+          ]
+        },
+        {
+          "fold": 2,
+          "held_out": "formbook_02.exe",
+          "true_family": "Formbook",
+          "pred_family": "AgentTesla",
+          "sample_correct": 0,
+          "window_accuracy": 0.0,
+          "n_test_windows": 34,
+          "client_shard_sizes": [
+            1,
+            1,
+            2
+          ]
+        },
+        {
+          "fold": 3,
+          "held_out": "redline_01.exe",
+          "true_family": "RedLine",
+          "pred_family": "Formbook",
+          "sample_correct": 0,
+          "window_accuracy": 0.0,
+          "n_test_windows": 40,
+          "client_shard_sizes": [
+            1,
+            2,
+            1
+          ]
+        },
+        {
+          "fold": 4,
+          "held_out": "agenttesla_03.exe",
+          "true_family": "AgentTesla",
+          "pred_family": "AgentTesla",
+          "sample_correct": 1,
+          "window_accuracy": 0.8333,
+          "n_test_windows": 6,
+          "client_shard_sizes": [
+            1,
+            1,
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "seed": 142,
+      "sample_level_accuracy": 0.0,
+      "window_level_accuracy": 0.033339999999999995,
+      "folds": [
+        {
+          "fold": 0,
+          "held_out": "agenttesla_02.exe",
+          "true_family": "AgentTesla",
+          "pred_family": "Formbook",
+          "sample_correct": 0,
+          "window_accuracy": 0.0,
+          "n_test_windows": 61,
+          "client_shard_sizes": [
+            1,
+            1,
+            2
+          ]
+        },
+        {
+          "fold": 1,
+          "held_out": "formbook_01.exe",
+          "true_family": "Formbook",
+          "pred_family": "AgentTesla",
+          "sample_correct": 0,
+          "window_accuracy": 0.0,
+          "n_test_windows": 33,
+          "client_shard_sizes": [
+            2,
+            1,
+            1
+          ]
+        },
+        {
+          "fold": 2,
+          "held_out": "formbook_02.exe",
+          "true_family": "Formbook",
+          "pred_family": "AgentTesla",
+          "sample_correct": 0,
+          "window_accuracy": 0.0,
+          "n_test_windows": 34,
+          "client_shard_sizes": [
+            1,
+            1,
+            2
+          ]
+        },
+        {
+          "fold": 3,
+          "held_out": "redline_01.exe",
+          "true_family": "RedLine",
+          "pred_family": "Formbook",
+          "sample_correct": 0,
+          "window_accuracy": 0.0,
+          "n_test_windows": 40,
+          "client_shard_sizes": [
+            1,
+            2,
+            1
+          ]
+        },
+        {
+          "fold": 4,
+          "held_out": "agenttesla_03.exe",
+          "true_family": "AgentTesla",
+          "pred_family": "Formbook",
+          "sample_correct": 0,
+          "window_accuracy": 0.1667,
+          "n_test_windows": 6,
+          "client_shard_sizes": [
+            1,
+            2,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "seed": 242,
+      "sample_level_accuracy": 0.0,
+      "window_level_accuracy": 0.033339999999999995,
+      "folds": [
+        {
+          "fold": 0,
+          "held_out": "agenttesla_02.exe",
+          "true_family": "AgentTesla",
+          "pred_family": "Formbook",
+          "sample_correct": 0,
+          "window_accuracy": 0.0,
+          "n_test_windows": 61,
+          "client_shard_sizes": [
+            1,
+            2,
+            1
+          ]
+        },
+        {
+          "fold": 1,
+          "held_out": "formbook_01.exe",
+          "true_family": "Formbook",
+          "pred_family": "AgentTesla",
+          "sample_correct": 0,
+          "window_accuracy": 0.0,
+          "n_test_windows": 33,
+          "client_shard_sizes": [
+            1,
+            2,
+            1
+          ]
+        },
+        {
+          "fold": 2,
+          "held_out": "formbook_02.exe",
+          "true_family": "Formbook",
+          "pred_family": "AgentTesla",
+          "sample_correct": 0,
+          "window_accuracy": 0.0,
+          "n_test_windows": 34,
+          "client_shard_sizes": [
+            1,
+            2,
+            1
+          ]
+        },
+        {
+          "fold": 3,
+          "held_out": "redline_01.exe",
+          "true_family": "RedLine",
+          "pred_family": "Formbook",
+          "sample_correct": 0,
+          "window_accuracy": 0.0,
+          "n_test_windows": 40,
+          "client_shard_sizes": [
+            1,
+            2,
+            1
+          ]
+        },
+        {
+          "fold": 4,
+          "held_out": "agenttesla_03.exe",
+          "true_family": "AgentTesla",
+          "pred_family": "Formbook",
+          "sample_correct": 0,
+          "window_accuracy": 0.1667,
+          "n_test_windows": 6,
+          "client_shard_sizes": [
+            2,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "seed": 342,
+      "sample_level_accuracy": 0.2,
+      "window_level_accuracy": 0.2,
+      "folds": [
+        {
+          "fold": 0,
+          "held_out": "agenttesla_02.exe",
+          "true_family": "AgentTesla",
+          "pred_family": "Formbook",
+          "sample_correct": 0,
+          "window_accuracy": 0.0,
+          "n_test_windows": 61,
+          "client_shard_sizes": [
+            2,
+            1,
+            1
+          ]
+        },
+        {
+          "fold": 1,
+          "held_out": "formbook_01.exe",
+          "true_family": "Formbook",
+          "pred_family": "AgentTesla",
+          "sample_correct": 0,
+          "window_accuracy": 0.0,
+          "n_test_windows": 33,
+          "client_shard_sizes": [
+            1,
+            2,
+            1
+          ]
+        },
+        {
+          "fold": 2,
+          "held_out": "formbook_02.exe",
+          "true_family": "Formbook",
+          "pred_family": "AgentTesla",
+          "sample_correct": 0,
+          "window_accuracy": 0.0,
+          "n_test_windows": 34,
+          "client_shard_sizes": [
+            1,
+            2,
+            1
+          ]
+        },
+        {
+          "fold": 3,
+          "held_out": "redline_01.exe",
+          "true_family": "RedLine",
+          "pred_family": "Formbook",
+          "sample_correct": 0,
+          "window_accuracy": 0.0,
+          "n_test_windows": 40,
+          "client_shard_sizes": [
+            1,
+            2,
+            1
+          ]
+        },
+        {
+          "fold": 4,
+          "held_out": "agenttesla_03.exe",
+          "true_family": "AgentTesla",
+          "pred_family": "AgentTesla",
+          "sample_correct": 1,
+          "window_accuracy": 1.0,
+          "n_test_windows": 6,
+          "client_shard_sizes": [
+            1,
+            2,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "seed": 442,
+      "sample_level_accuracy": 0.2,
+      "window_level_accuracy": 0.1,
+      "folds": [
+        {
+          "fold": 0,
+          "held_out": "agenttesla_02.exe",
+          "true_family": "AgentTesla",
+          "pred_family": "Formbook",
+          "sample_correct": 0,
+          "window_accuracy": 0.0,
+          "n_test_windows": 61,
+          "client_shard_sizes": [
+            2,
+            1,
+            1
+          ]
+        },
+        {
+          "fold": 1,
+          "held_out": "formbook_01.exe",
+          "true_family": "Formbook",
+          "pred_family": "AgentTesla",
+          "sample_correct": 0,
+          "window_accuracy": 0.0,
+          "n_test_windows": 33,
+          "client_shard_sizes": [
+            1,
+            2,
+            1
+          ]
+        },
+        {
+          "fold": 2,
+          "held_out": "formbook_02.exe",
+          "true_family": "Formbook",
+          "pred_family": "AgentTesla",
+          "sample_correct": 0,
+          "window_accuracy": 0.0,
+          "n_test_windows": 34,
+          "client_shard_sizes": [
+            1,
+            1,
+            2
+          ]
+        },
+        {
+          "fold": 3,
+          "held_out": "redline_01.exe",
+          "true_family": "RedLine",
+          "pred_family": "Formbook",
+          "sample_correct": 0,
+          "window_accuracy": 0.0,
+          "n_test_windows": 40,
+          "client_shard_sizes": [
+            1,
+            2,
+            1
+          ]
+        },
+        {
+          "fold": 4,
+          "held_out": "agenttesla_03.exe",
+          "true_family": "AgentTesla",
+          "pred_family": "AgentTesla",
+          "sample_correct": 1,
+          "window_accuracy": 0.5,
+          "n_test_windows": 6,
+          "client_shard_sizes": [
+            1,
+            2,
+            1
+          ]
+        }
+      ]
+    }
+  ]
+}
