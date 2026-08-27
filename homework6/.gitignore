@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+
+# Public Malware API Call Dataset (mal-api-2019, IEEE DataPort) -- large
+# third-party download, not ours to redistribute. See CLAUDE.md for the
+# download steps; build_public_vocab.py regenerates api_vocab.json from it.
+data/public/
+
+*_HW6.zip
