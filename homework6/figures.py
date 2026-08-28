@@ -142,6 +142,98 @@ def fig_convergence(fed_iid, fed_non_iid, out_path):
     print(f"[+] wrote {out_path}")
 
 
+def fig_privacy_utility(sweep, out_path):
+    """Sample accuracy vs. epsilon, one line per DP mechanism, from the HW6
+    sweep on the public dataset. The headline result figure."""
+    if not sweep:
+        print("[!] no DP sweep summary found, skipping dp_privacy_utility.png")
+        return
+
+    palette = {"central_server": "#4C72B0", "central_client": "#55A868",
+               "local": "#8172B2", "dpsgd": "#DD8452"}
+    markers = {"central_server": "o", "central_client": "s",
+               "local": "^", "dpsgd": "D"}
+    unit = {"central_server": "client", "central_client": "client",
+            "local": "client", "dpsgd": "sample"}
+
+    by_mech = {}
+    baseline = sweep["baseline_accuracy"]
+    for row in sweep["rows"]:
+        if row["mechanism"] == "none":
+            continue
+        by_mech.setdefault(row["mechanism"], []).append(row)
+
+    fig, ax = plt.subplots(figsize=(7.5, 5.5))
+    ax.axhline(baseline, color="black", linestyle="--", linewidth=1,
+               label=f"No DP baseline ({baseline:.2f})")
+    n_families = len(sweep.get("families", [])) or 8
+    ax.axhline(1.0 / n_families, color="gray", linestyle=":", linewidth=1,
+               label=f"Chance (1/{n_families})")
+
+    for mech, rows in by_mech.items():
+        rows = sorted(rows, key=lambda r: r["epsilon"])
+        eps = [r["epsilon"] for r in rows]
+        acc = [r["sample_accuracy"] for r in rows]
+        std = [r["sample_std"] for r in rows]
+        label = f"{mech} ({unit[mech]}-level ε)"
+        ax.errorbar(eps, acc, yerr=std, label=label, color=palette.get(mech),
+                    marker=markers.get(mech), markersize=6, capsize=4, linewidth=1.5)
+
+    ax.set_xscale("log")
+    ax.set_xlabel("Privacy budget ε (log scale)")
+    ax.set_ylabel("Sample-level accuracy")
+    ax.set_ylim(0, max(baseline, 0.6) + 0.08)
+    ax.set_title("Privacy-utility curve: public malware dataset, IID")
+    ax.legend(loc="upper left", fontsize=8)
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=150)
+    plt.close(fig)
+    print(f"[+] wrote {out_path}")
+
+
+def fig_dp_convergence(out_path, eps=8.0, prefix="results/dp_public_iid"):
+    """Training loss per round: no-DP baseline vs. central_server (collapses
+    to NaN) vs. dpsgd (survives) at the same nominal noise multiplier -- the
+    evidence for the weight-space-vs-gradient-space noise argument."""
+    series = [
+        (load_json(f"{prefix}_none.json"), "No DP", "#4C72B0", False),
+        (load_json(f"{prefix}_central_server_eps{eps}.json"),
+         f"central_server (ε={eps})", "#C44E52", True),
+        (load_json(f"{prefix}_dpsgd_eps{eps}.json"), f"dpsgd (ε={eps})", "#DD8452", False),
+    ]
+
+    fig, ax = plt.subplots(figsize=(7, 5))
+    plotted = False
+    for result, label, color, mark_divergence in series:
+        if not result or not result.get("example_history"):
+            continue
+        losses = result["example_history"]["train_loss_by_round"]
+        rounds = [r for r, v in losses if v == v]     # v == v is False for NaN
+        vals = [v for r, v in losses if v == v]
+        if not vals:
+            continue
+        ax.plot(rounds, vals, label=label, color=color, marker="o", markersize=3)
+        if mark_divergence and len(vals) < len(losses):
+            ax.axvline(rounds[-1] + 0.5, color=color, linestyle=":", linewidth=1)
+            ax.annotate("diverges to NaN", xy=(rounds[-1], vals[-1]),
+                        xytext=(rounds[-1] + 2, vals[-1] + 0.3), fontsize=8, color=color)
+        plotted = True
+
+    if not plotted:
+        print("[!] no example_history found, skipping dp_convergence.png")
+        plt.close(fig)
+        return
+
+    ax.set_xlabel("FedAvg round")
+    ax.set_ylabel("Weighted mean client train loss")
+    ax.set_title(f"Weight-space vs. gradient-space noise (ε={eps}, same noise multiplier)")
+    ax.legend()
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=150)
+    plt.close(fig)
+    print(f"[+] wrote {out_path}")
+
+
 def main():
     centralized = load_json(f"{RESULTS_DIR}/centralized_baseline.json")
     fed_iid = load_json(f"{RESULTS_DIR}/federated_iid.json")
@@ -151,6 +243,10 @@ def main():
                             f"{RESULTS_DIR}/accuracy_comparison.png")
     fig_partition_heterogeneity(f"{RESULTS_DIR}/partition_heterogeneity.png")
     fig_convergence(fed_iid, fed_non_iid, f"{RESULTS_DIR}/convergence.png")
+
+    dp_sweep = load_json(f"{RESULTS_DIR}/dp_sweep_public_iid.json")
+    fig_privacy_utility(dp_sweep, f"{RESULTS_DIR}/dp_privacy_utility.png")
+    fig_dp_convergence(f"{RESULTS_DIR}/dp_convergence.png")
 
 
 if __name__ == "__main__":
