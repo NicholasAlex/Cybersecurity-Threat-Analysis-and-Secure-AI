@@ -46,6 +46,15 @@ def run_one(args, mechanism, epsilon):
     dp_prefix = "dp" if args.dataset == "cape" else f"dp_{args.dataset}"
     out = Path(args.outdir) / f"{dp_prefix}_{args.partition}_{tag}.json"
 
+    # Each config's own result file is that config's checkpoint: a full sweep
+    # takes hours, and re-running finished configs after an interrupted sweep
+    # would waste most of that. --force re-runs anyway (e.g. changed hyperparams).
+    if out.exists() and not args.force:
+        print(f"  -> {mechanism:<15} eps={epsilon if mechanism != 'none' else 'inf'}  "
+              f"(skipped, found {out})", flush=True)
+        with open(out) as f:
+            return json.load(f)
+
     cmd = [
         sys.executable, "run_simulation.py",
         "--dataset", args.dataset,
@@ -98,6 +107,10 @@ def main():
     ap.add_argument("--n-seeds", type=int, default=3)
     ap.add_argument("--outdir", default="results")
     ap.add_argument("--summary", default=None)
+    ap.add_argument("--force", action="store_true",
+                     help="re-run every config even if its result file already "
+                          "exists (default: skip and reuse it -- resume support "
+                          "for an interrupted sweep)")
     args = ap.parse_args()
 
     epsilons = args.epsilons or DEFAULT_EPSILONS
