@@ -1,0 +1,56 @@
+{
+  "families": [
+    "alpha",
+    "bravo",
+    "charlie",
+    "delta",
+    "echo",
+    "foxtrot",
+    "golf",
+    "hotel"
+  ],
+  "config": {
+    "images": "../data/images",
+    "experiment": "nmalicious",
+    "num_clients": 5,
+    "malicious_id": 0,
+    "target": 0,
+    "trigger_pos": "bottom_stripe",
+    "patch": 12,
+    "poison_fraction": 0.4,
+    "gamma": 5.0,
+    "partition": "iid",
+    "attack_start": 8,
+    "rounds": 12,
+    "local_epochs": 2,
+    "lr": 0.01,
+    "batch_size": 32,
+    "seed": 42,
+    "device": "cpu",
+    "out": "../results/backdoor_results.json"
+  },
+  "experiments": {
+    "nmalicious_sweep": [
+      {
+        "n_malicious": 1,
+        "mta": 1.0,
+        "asr": 1.0
+      },
+      {
+        "n_malicious": 2,
+        "mta": 0.75,
+        "asr": 0.7142857142857143
+      },
+      {
+        "n_malicious": 3,
+        "mta": 0.125,
+        "asr": 1.0
+      },
+      {
+        "n_malicious": 4,
+        "mta": 0.125,
+        "asr": 1.0
+      }
+    ]
+  }
+}
