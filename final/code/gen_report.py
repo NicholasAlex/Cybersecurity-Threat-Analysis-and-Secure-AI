@@ -36,6 +36,15 @@ def fnum(x):
     return "n/a" if x is None else f"{x:.3f}"
 
 
+def pm(mean, std):
+    if mean is None:
+        return "n/a"
+    return f"{100*mean:.1f}%" + ("" if not std else f" +/- {100*std:.1f}%")
+
+
+NSEEDS = len(CFG.get("seeds_used", [CFG.get("seed")]))
+
+
 doc = Document()
 st = doc.styles["Normal"]; st.font.name = "Calibri"; st.font.size = Pt(11)
 
@@ -183,20 +192,42 @@ bullet("Metrics: MTA (Main Task Accuracy) on clean images, and ASR (Attack "
        "Success Rate) = fraction of triggered NON-target images classified as "
        "the target. They are always reported together, because the danger of a "
        "backdoor is high ASR at unchanged MTA.")
+if NSEEDS > 1:
+    bullet(f"Every experiment is averaged over {NSEEDS} random seeds (fresh "
+           "split, partition, model init and poison sampling each time); figures "
+           "show the mean with +/- 1 std error bars. This is necessary because "
+           "the small self-test set is high-variance under single-shot full "
+           "replacement.")
 
 # ---- 5. Results ------------------------------------------------------------
 h("5. Results", 1)
 if "clean" in EX and "backdoor" in EX:
-    cmta = EX["clean"]["final_mta"]
-    bmta = EX["backdoor"]["final_mta"]; basr = EX["backdoor"]["final_asr"]
-    p(f"Clean FL baseline reaches MTA {pct(cmta)}. The single-shot backdoor then "
-      f"reaches ASR {pct(basr)} while MTA holds at {pct(bmta)} - the model's "
-      "clean accuracy is essentially unchanged, so validation metrics give the "
-      "server no warning that a trigger has been installed. This is the core "
-      "result: a stealthy backdoor at high main-task accuracy.")
+    b = EX["backdoor"]
+    seeds_txt = (f" (mean +/- std over {NSEEDS} seeds)" if NSEEDS > 1 else "")
+    p(f"Clean FL baseline reaches MTA "
+      f"{pm(EX['clean']['final_mta'], EX['clean'].get('final_mta_std'))}. The "
+      f"single-shot model-replacement backdoor then reaches ASR "
+      f"{pm(b['final_asr'], b.get('final_asr_std'))}{seeds_txt}: the trigger is "
+      "installed reliably in one round. The main-task accuracy after that "
+      f"injection is MTA {pm(b['final_mta'], b.get('final_mta_std'))}.")
+    p("Reading the stealth story honestly on this dataset. Achieving high ASR is "
+      "easy; the hard half of the attack is keeping MTA high at the same time "
+      "(stealth). On the small self-test set the two goals TRADE OFF, and the "
+      "large MTA variance above is the reason: full model replacement makes the "
+      "global model equal to the attacker's model, which was trained on only one "
+      "client's ~77 images, so its clean accuracy swings widely by seed. The "
+      "other end of the trade-off confirms this - a gentler CONTINUOUS attack "
+      "(gamma=2 over the last rounds) held MTA at 100% but reached only ~30% ASR, "
+      "because the honest majority re-learns the clean task each round and erodes "
+      "the trigger. The stealthy middle exists but is narrow and seed-sensitive "
+      "here. This is a small-data artifact: on MOTIF, where each client holds "
+      "thousands of images, the attacker's replaced model retains clean accuracy, "
+      "so high ASR and high MTA are expected to hold together. The sweeps below "
+      "map exactly this ASR-vs-MTA trade-off, and the same commands quantify it "
+      "on MOTIF once attached.")
 figure("fig_rounds.png", "Figure 1. MTA and ASR over training rounds. Clean "
-       "accuracy converges, then the single-shot injection drives ASR up while "
-       "MTA stays high.")
+       "accuracy converges, then the single-shot injection drives ASR to ~1.0; "
+       "the shaded bands are +/- 1 std across seeds.")
 if "gamma_sweep" in EX:
     g = EX["gamma_sweep"]
     p("Gamma sweep (Figure 2). At gamma = 1 the attack is ordinary data poisoning "
@@ -207,20 +238,27 @@ if "gamma_sweep" in EX:
                   for r in g) + ".")
     figure("fig_gamma.png", "Figure 2. ASR and MTA vs update-scaling factor gamma.")
 if "poison_sweep" in EX:
-    p("Poison-fraction sweep (Figure 3). Too little poisoning fails to embed the "
-      "trigger; too much collapses the malicious model onto the target class and "
-      "MTA falls. A moderate fraction fits both objectives - the stealthy sweet "
-      "spot the default uses.")
+    ps = EX["poison_sweep"]
+    p("Poison-fraction sweep (Figure 3). Under single-shot replacement even a "
+      "small poisoned share already drives ASR to ~1.0; raising the fraction does "
+      "not help ASR and steadily erodes MTA as the malicious model collapses onto "
+      "the target class. Numerically: "
+      + "; ".join(f"pf={r['poison_fraction']} -> ASR {pct(r['asr'])}, MTA {pct(r['mta'])}"
+                  for r in ps)
+      + ". So the attacker's stealthy choice is the SMALLEST fraction that still "
+      "triggers, not the largest.")
     figure("fig_poison.png", "Figure 3. ASR and MTA vs poison fraction.")
 if "nmalicious_sweep" in EX:
     n = EX["nmalicious_sweep"]
-    p("Colluding-client sweep (Figure 4), run as pure data poisoning (gamma = 1, "
-      "attackers every round). This isolates how many colluders the backdoor "
-      "needs to survive plain FedAvg: "
+    p("Colluding-client sweep (Figure 4), run as single-shot data poisoning "
+      "(gamma = 1, no amplification): k colluders contribute about k/K of the "
+      "aggregate, so the backdoor survives FedAvg only once enough clients "
+      "collude. This isolates the collusion threshold, distinct from the gamma "
+      "sweep's single-attacker replacement: "
       + "; ".join(f"{r['n_malicious']} -> ASR {pct(r['asr'])}, MTA {pct(r['mta'])}"
                   for r in n) + ".")
     figure("fig_nmalicious.png", "Figure 4. ASR and MTA vs number of colluding "
-           "clients (data poisoning, gamma = 1).")
+           "clients (single-shot data poisoning, gamma = 1).")
 
 # ---- 6. Functionality proof ------------------------------------------------
 h("6. Functionality Proof (Goal 2)", 1)
@@ -269,16 +307,21 @@ else:
 
 # ---- 8. Conclusion ---------------------------------------------------------
 h("8. Conclusion", 1)
-p("A single compromised client can install a stealthy backdoor in a federated "
-  "malware-image classifier: with single-shot model replacement the trigger "
-  "reaches high ASR while clean accuracy is essentially unchanged, so the "
-  "server's validation metrics never reveal it. Crucially the trigger is not a "
-  "feature-space abstraction - it is a run of overlay bytes that leaves the PE "
-  "runnable, so the same edit that fools the model is realisable on a live "
-  "sample. Server-side norm-clipping and robust (median) aggregation remove the "
-  "over-sized update the attack depends on and drive ASR back down, at little "
-  "cost to accuracy - a practical mitigation the server can deploy without "
-  "identifying the attacker.")
+p("A single compromised client can backdoor a federated malware-image "
+  "classifier: single-shot model replacement installs the trigger reliably "
+  "(ASR ~1.0). The subtler lesson is the stealth trade-off - on our small "
+  "self-test set, keeping clean accuracy high while the backdoor is active is "
+  "unstable, because full replacement hands the whole global model to an "
+  "attacker trained on very little data; a gentler attack keeps MTA high but "
+  "barely triggers. The gamma and poison sweeps chart this trade-off, and it is "
+  "a small-data effect we expect to relax on MOTIF, where each client holds "
+  "enough images that the replaced model keeps its clean accuracy. Crucially the "
+  "trigger is not a feature-space abstraction - it is a run of overlay bytes "
+  "that leaves the PE runnable, so the same edit that fools the model is "
+  "realisable on a live sample. Finally, the attack has a cheap cure: because it "
+  "depends on submitting an over-sized outlier update, server-side norm-clipping "
+  "and coordinate-wise median aggregation drive ASR back to ~0 AND restore clean "
+  "accuracy, without the server ever having to identify the attacker.")
 
 # ---- Responsibilities ------------------------------------------------------
 h("Responsibilities", 1)

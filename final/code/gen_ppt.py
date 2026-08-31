@@ -129,20 +129,21 @@ bullets(s, [
 ])
 
 # --- 6 Headline result -----------------------------------------------------
-s = title_only("Result: A Stealthy Backdoor")
+s = title_only("Result: The Attack Lands - and the Stealth Trade-off")
 if "clean" in EX and "backdoor" in EX:
-    c = EX["clean"]["final_mta"]; b = EX["backdoor"]
-    tf = textbox(s, 0.8, 1.6, 11.7, 1.6)
+    b = EX["backdoor"]
+    tf = textbox(s, 0.8, 1.5, 11.7, 1.2)
     r = tf.paragraphs[0].add_run()
-    r.text = f"ASR {pct(b['final_asr'])}   at   MTA {pct(b['final_mta'])}"
-    r.font.size = Pt(40); r.font.bold = True; r.font.color.rgb = RED
-    p2 = tf.add_paragraph(); r = p2.add_run()
-    r.text = f"(clean baseline MTA {pct(c)})"
-    r.font.size = Pt(20)
+    r.text = f"ASR {pct(b['final_asr'])}  -  the trigger installs reliably in one round"
+    r.font.size = Pt(30); r.font.bold = True; r.font.color.rgb = RED
     bullets(s, [
-        "The trigger fires almost every time, yet clean accuracy is essentially unchanged.",
-        "The server's validation metrics give NO warning the model was tampered with.",
-    ], top=3.4, height=3.0)
+        "Getting high ASR is easy; the HARD half is keeping clean accuracy high at the same time (stealth).",
+        "On this small self-test set the two goals trade off:",
+        ("full replacement -> ASR ~100% but MTA collapses and swings by seed (the attacker's model saw only ~77 images)", 1),
+        ("gentle continuous attack -> MTA stays 100% but ASR only ~30% (honest majority erodes the trigger)", 1),
+        "Small-data effect: on MOTIF (thousands of images/client) the replaced model keeps clean accuracy -> both hold together.",
+        "The sweeps map this trade-off; the defense removes it.",
+    ], top=2.7, height=4.4, size=18)
 
 # --- 7 Rounds figure -------------------------------------------------------
 pic_slide("Backdoor Over Training Rounds",
@@ -177,10 +178,10 @@ if "defense" in EX:
 # --- 11 Conclusion ---------------------------------------------------------
 s = title_only("Conclusion")
 bullets(s, [
-    "One compromised client can install a STEALTHY backdoor: high ASR at near-baseline MTA.",
-    "The trigger is not an abstraction - it is overlay bytes that leave the PE runnable.",
-    "Same edit fools the model AND preserves functionality: the two goals share one mechanism.",
-    "Server-side norm-clipping / median aggregation drive ASR back down, cheaply, without identifying the attacker.",
+    "One compromised client can backdoor the global model: single-shot replacement installs the trigger reliably (ASR ~1.0).",
+    "Stealth (high ASR AND high MTA together) is the hard part - a small-data trade-off here, expected to relax on MOTIF.",
+    "The trigger is not an abstraction - it is overlay bytes that leave the PE runnable (goals 1 and 2 share one mechanism).",
+    "Cheap cure: norm-clipping / median aggregation drive ASR to ~0 and restore clean accuracy, without identifying the attacker.",
 ])
 
 OUT = DOCS / "FinalProject_Slides.pptx"
