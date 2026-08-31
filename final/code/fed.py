@@ -28,6 +28,7 @@ import numpy as np
 
 from model import MalwareCNN, get_weights, set_weights, make_loader, evaluate
 import backdoor as bd
+import defense as dfn
 
 
 def fedavg_round(global_weights, client_updates, client_sizes):
@@ -46,7 +47,7 @@ def fedavg_round(global_weights, client_updates, client_sizes):
 
 
 def run_federated(shards, n_classes, cfg, attack=None, malicious_ids=(),
-                  X_clean_test=None, y_clean_test=None, log_every=1):
+                  X_clean_test=None, y_clean_test=None, log_every=1, defense=None):
     """
     Train a federated model for cfg["rounds"] rounds over `shards`
     (list of (paths_or_X, y) per client). If `attack` is given, every client in
@@ -75,7 +76,8 @@ def run_federated(shards, n_classes, cfg, attack=None, malicious_ids=(),
         set_weights(global_model, global_weights)
         return evaluate(global_model, make_loader(Xe, ye, cfg["batch_size"], False), device)
 
-    history = {"round": [], "mta": [], "asr": []}
+    history = {"round": [], "mta": [], "asr": [], "malicious_norm": [],
+               "max_honest_norm": []}
 
     for rnd in range(1, cfg["rounds"] + 1):
         # The attacker can hold off until the main task has converged, which is
@@ -85,17 +87,28 @@ def run_federated(shards, n_classes, cfg, attack=None, malicious_ids=(),
         # MTA (and thus stealth). attack["start_round"] defaults to 1.
         attack_now = attack is not None and rnd >= attack.get("start_round", 1)
 
-        updates, sizes = [], []
+        updates, sizes, mal_flags = [], [], []
         for cid, (X, y) in enumerate(client_data):
             if len(X) == 0:
                 continue
             if attack_now and cid in malicious_ids:
                 upd, n = bd.malicious_update(global_weights, X, y, n_classes, cfg, attack)
+                mal_flags.append(True)
             else:
                 upd, n = bd.honest_update(global_weights, X, y, n_classes, cfg)
+                mal_flags.append(False)
             updates.append(upd); sizes.append(n)
 
-        global_weights = fedavg_round(global_weights, updates, sizes)
+        # Record update norms so the report can show the malicious update is an
+        # outlier (the signal norm-clipping / anomaly detection keys on).
+        norms = [dfn._global_l2(u) for u in updates]
+        mal_norm = max((nm for nm, m in zip(norms, mal_flags) if m), default=None)
+        hon_norm = max((nm for nm, m in zip(norms, mal_flags) if not m), default=None)
+
+        if defense is not None:
+            global_weights, _ = dfn.aggregate(global_weights, updates, sizes, defense)
+        else:
+            global_weights = fedavg_round(global_weights, updates, sizes)
 
         if rnd % log_every == 0 or rnd == cfg["rounds"]:
             mta = asr = None
@@ -108,6 +121,8 @@ def run_federated(shards, n_classes, cfg, attack=None, malicious_ids=(),
             history["round"].append(rnd)
             history["mta"].append(mta)
             history["asr"].append(asr)
+            history["malicious_norm"].append(mal_norm)
+            history["max_honest_norm"].append(hon_norm)
             msg = f"  round {rnd:3d}/{cfg['rounds']}"
             if mta is not None: msg += f"  MTA={mta:.3f}"
             if asr is not None: msg += f"  ASR={asr:.3f}"

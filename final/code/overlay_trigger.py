@@ -66,6 +66,25 @@ def bracket_upper_bound(size):
     return float("inf")
 
 
+def rows_for_patch(size_bytes, patch, img_size=128):
+    """
+    How many full image-rows of 0xFF to append so that, after HW3 resizes the
+    file's image to img_size x img_size, the bottom `patch` rows come out white
+    -- i.e. the physical trigger reproduces backdoor.make_trigger_mask(patch=...).
+
+    The native image is (size_bytes / width) rows tall. Appending R native rows
+    makes the bottom R / (native_rows + R) fraction of the image white; we need
+    that fraction to reach patch / img_size, so
+        R >= native_rows * patch / (img_size - patch).
+    This is why --rows must scale with file size: a fixed row count paints a
+    thinner and thinner stripe as the binary grows.
+    """
+    width = width_for_size(size_bytes)
+    native_rows = max(1, size_bytes // width)
+    frac = patch / float(img_size)
+    return int(np.ceil(native_rows * frac / (1.0 - frac)))
+
+
 def append_overlay_trigger(in_path, out_path, rows):
     """Append `rows` full image-rows of 0xFF to the file's overlay."""
     data = Path(in_path).read_bytes()
@@ -79,7 +98,8 @@ def append_overlay_trigger(in_path, out_path, rows):
         raise SystemExit(
             f"Appending {n_trigger} bytes ({rows} rows x {width}) would push the "
             f"file from {size} to {new_size} bytes and cross a width bracket, "
-            f"reshaping the image. Reduce --rows.")
+            f"reshaping the image. Reduce --rows/--patch, or use a larger file "
+            f"whose bracket has more headroom.")
 
     Path(out_path).write_bytes(data + bytes([TRIGGER_BYTE]) * n_trigger)
     return {"orig_size": size, "width": width, "rows": rows,
@@ -155,13 +175,25 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--in", dest="inp", required=True, help="original PE binary")
     ap.add_argument("--out", required=True, help="output triggered binary")
-    ap.add_argument("--rows", type=int, default=6,
-                    help="image-rows of 0xFF to append (bottom stripe thickness)")
+    ap.add_argument("--rows", type=int, default=None,
+                    help="image-rows of 0xFF to append (bottom stripe thickness). "
+                         "If omitted, derived from --patch so the physical stripe "
+                         "matches the model's feature-space trigger after resize.")
+    ap.add_argument("--patch", type=int, default=12,
+                    help="feature-space trigger thickness the backdoored model keys "
+                         "on (backdoor.make_trigger_mask patch=). Used to auto-size "
+                         "--rows so the two triggers are the SAME stripe.")
     ap.add_argument("--size", type=int, default=128, help="CNN image size for the diff check")
     args = ap.parse_args()
 
+    orig_size = Path(args.inp).stat().st_size
+    rows = args.rows if args.rows is not None else rows_for_patch(orig_size, args.patch, args.size)
+    if args.rows is None:
+        print(f"[+] --rows auto-set to {rows} to reproduce patch={args.patch}px "
+              f"on a {orig_size}-byte file (width {width_for_size(orig_size)})")
+
     print(f"[+] appending overlay trigger to {args.inp}")
-    info = append_overlay_trigger(args.inp, args.out, args.rows)
+    info = append_overlay_trigger(args.inp, args.out, rows)
     for k, v in info.items():
         print(f"    {k}: {v}")
 

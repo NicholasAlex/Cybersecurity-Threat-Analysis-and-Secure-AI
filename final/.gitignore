@@ -1,0 +1,8 @@
+# Synthetic self-test images (regenerate with make_synthetic.py)
+data/images/
+# Scratch / probe outputs
+results/_probe.json
+__pycache__/
+*.pyc
+# Triggered binaries must never be committed (live-malware handling)
+*_triggered.exe
