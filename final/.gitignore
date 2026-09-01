@@ -6,3 +6,8 @@ __pycache__/
 *.pyc
 # Triggered binaries must never be committed (live-malware handling)
 *_triggered.exe
+# Raw MOTIF dataset download + sorted binaries (large, not ours to redistribute)
+MOTIF/
+extracted/
+# Python venv
+.venv/
