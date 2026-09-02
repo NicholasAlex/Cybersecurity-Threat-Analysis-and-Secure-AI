@@ -1,0 +1,57 @@
+CAPE Functionality Proof - Goal 2
+Sample: AgentTesla (agenttesla_02.exe, md5 9551d8577c3653ac1f51fc47670c1117885d3f1725695e6a4c580f4de030304e)
+Sandbox: CAPEv2, Ubuntu host, victim-win11 KVM guest
+CAPE task #23 = original (862,615 bytes), task #24 = triggered (952,471 bytes, +117 overlay rows, --patch 12)
+Generated: 2026-09-02T01:33:04Z
+
+=== malscore ===
+original: 8.0  triggered: 8.0
+
+=== process names ===
+original:  ['agenttesla_02.exe', 'agenttesla_02.exe']
+triggered: ['agenttesla_02_triggered.exe', 'agenttesla_02_triggered.exe']
+DIFFER
+
+=== behavior summary keys (file/registry/mutex categories) ===
+  created_services               orig=    0  trig=    0
+  delete_files                   orig=    3  trig=    3
+  delete_keys                    orig=    0  trig=    0
+  executed_commands              orig=    2  trig=    2
+  files                          orig=   85  trig=   85
+  keys                           orig=  200  trig=  200
+  mutexes                        orig=    4  trig=    4
+  read_files                     orig=    0  trig=    0
+  read_keys                      orig=   81  trig=   81
+  resolved_apis                  orig=    0  trig=    0
+  started_services               orig=    0  trig=    0
+  write_files                    orig=   20  trig=   20
+  write_keys                     orig=   10  trig=   10
+
+=== network ===
+  hosts        MATCH  orig=[{'ip': '46.183.223.124', 'country_name': 'unknown', 'asn': '', 'asn_name': '', 'hostname': '', 'inaddrarpa': '', 'ports': [80]}]
+  domains      MATCH  orig=[]
+  dns          MATCH  orig=[]
+  http         MATCH  orig=[]
+  tcp_count    MATCH  orig=0
+  udp_count    DIFFER  orig=88
+      trig=72
+
+=== signatures ===
+original:  [('accesses_public_folder', 1), ('antidebug_ntsetinformationthread', 2), ('contains_pe_overlay', 2), ('dead_connect', 1), ('discover_registry_mount_points', 2), ('dllload_suspicious_directory', 2), ('http_request', 2), ('infostealer_cookies', 3), ('injection_rwx', 2), ('injection_write_process', 2), ('pe_section_vsize_rsize_anomaly', 2), ('query_fips_reconnaissance', 2), ('reads_self', 2), ('registers_vectored_exception_handler', 2), ('resumethread_remote_process', 2), ('stealth_timeout', 1), ('suspicious_http_timeouts', 2), ('terminates_remote_process', 2), ('unbacked_etw_patching', 3), ('unbacked_exception_filter', 3), ('unbacked_memory_protection_alteration', 3)]
+triggered: [('accesses_public_folder', 1), ('antidebug_ntsetinformationthread', 2), ('contains_pe_overlay', 2), ('dead_connect', 1), ('discover_registry_mount_points', 2), ('dllload_suspicious_directory', 2), ('http_request', 2), ('infostealer_cookies', 3), ('injection_rwx', 2), ('injection_write_process', 2), ('pe_section_vsize_rsize_anomaly', 2), ('query_fips_reconnaissance', 2), ('reads_self', 2), ('registers_vectored_exception_handler', 2), ('resumethread_remote_process', 2), ('stealth_timeout', 1), ('suspicious_http_timeouts', 2), ('terminates_remote_process', 2), ('unbacked_etw_patching', 3), ('unbacked_exception_filter', 3), ('unbacked_memory_protection_alteration', 3)]
+MATCH
+
+=== dropped files ===
+original:  [['Detentens'], ['Haandfstningens'], ['System.dll'], ['avaunt.ini'], ['bleachable.jpg'], ['dense.ini'], ['ekslibris.jpg'], ['nacelle.con'], ['navere.ini'], ['plantefibre.kon'], ['premadness.ini'], ['sardines.ini'], ['sprogbrugs.txt'], ['stoddere.ini'], ['tricepses.txt'], ['unleaderly.jpg']]
+triggered: [['Detentens'], ['Haandfstningens'], ['System.dll'], ['avaunt.ini'], ['bleachable.jpg'], ['dense.ini'], ['ekslibris.jpg'], ['nacelle.con'], ['navere.ini'], ['plantefibre.kon'], ['premadness.ini'], ['sardines.ini'], ['sprogbrugs.txt'], ['stoddere.ini'], ['tricepses.txt'], ['unleaderly.jpg']]
+MATCH
+
+=== API call counts (top-level compare) ===
+total distinct APIs: orig=93 trig=93
+total API calls: orig=16887 trig=16805
+APIs with differing counts (top 15):
+  NtOpenKeyEx                    orig=   297  trig=   252
+  RtlSetCurrentTransaction       orig=   265  trig=   220
+  NtAllocateVirtualMemory        orig=    54  trig=    58
+  GetSystemTimeAsFileTime        orig=  1492  trig=  1495
+  NtWaitForSingleObject          orig=   304  trig=   305
